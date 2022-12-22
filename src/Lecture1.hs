@@ -108,7 +108,7 @@ first character) and negative end position should result in an empty
 string.
 -}
 subString :: Int -> Int -> [Char] -> [Char]
-subString start end str = 
+subString start end str
     | end < 0 = []
     | otherwise = take (end-(max 0 start)+1) (drop (max 0 start) str)
 
