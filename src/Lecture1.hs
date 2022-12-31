@@ -1,158 +1,140 @@
-{- |
-Module                  : Lecture1
-Copyright               : (c) 2021-2022 Haskell Beginners 2022 Course
-SPDX-License-Identifier : MPL-2.0
-Maintainer              : Haskell Beginners 2022 Course <haskell.beginners2022@gmail.com>
-Stability               : Stable
-Portability             : Portable
-
-Exercises for the Lecture 1 of the Haskell Beginners course.
-
-To complete exercises, you need to complete implementation and add
-missing top-level type signatures. You can implement any additional
-helper functions. But you can't change the names of the given
-functions.
-
-Comments before each function contain explanations and example of
-arguments and expected returned values.
-
-It's absolutely okay if you feel that your implementations are not
-perfect. You can return to these exercises after future lectures and
-improve your solutions if you see any possible improvements.
--}
-
+-- |
+-- Module                  : Lecture1
+-- Copyright               : (c) 2021-2022 Haskell Beginners 2022 Course
+-- SPDX-License-Identifier : MPL-2.0
+-- Maintainer              : Haskell Beginners 2022 Course <haskell.beginners2022@gmail.com>
+-- Stability               : Stable
+-- Portability             : Portable
+--
+-- Exercises for the Lecture 1 of the Haskell Beginners course.
+--
+-- To complete exercises, you need to complete implementation and add
+-- missing top-level type signatures. You can implement any additional
+-- helper functions. But you can't change the names of the given
+-- functions.
+--
+-- Comments before each function contain explanations and example of
+-- arguments and expected returned values.
+--
+-- It's absolutely okay if you feel that your implementations are not
+-- perfect. You can return to these exercises after future lectures and
+-- improve your solutions if you see any possible improvements.
 module Lecture1
-    ( makeSnippet
-    , sumOfSquares
-    , lastDigit
-    , minmax
-    , subString
-    , strSum
-    , lowerAndGreater
-    ) where
+  ( makeSnippet,
+    sumOfSquares,
+    lastDigit,
+    minmax,
+    subString,
+    strSum,
+    lowerAndGreater,
+  )
+where
 
 -- VVV If you need to import libraries, do it after this line ... VVV
 
--- ^^^ and before this line. Otherwise the test suite might fail  ^^^
+-- ^ ^^ and before this line. Otherwise the test suite might fail  ^^^
 
-{- | Specify the type signature of the following function. Think about
-its behaviour, possible types for the function arguments and write the
-type signature explicitly.
--}
+-- | Specify the type signature of the following function. Think about
+-- its behaviour, possible types for the function arguments and write the
+-- type signature explicitly.
 makeSnippet :: Int -> [Char] -> [Char]
 makeSnippet limit text = take limit ("Description: " ++ text) ++ "..."
 
-{- | Implement a function that takes two numbers and finds sum of
-their squares.
+-- | Implement a function that takes two numbers and finds sum of
+-- their squares.
+--
+-- >>> sumOfSquares 3 4
+-- 25
+--
+-- >>> sumOfSquares (-2) 7
+-- 53
+--
+-- Explanation: @sumOfSquares 3 4@ should be equal to @9 + 16@ and this
+-- is 25.
 
->>> sumOfSquares 3 4
-25
-
->>> sumOfSquares (-2) 7
-53
-
-Explanation: @sumOfSquares 3 4@ should be equal to @9 + 16@ and this
-is 25.
--}
 -- DON'T FORGET TO SPECIFY THE TYPE IN HERE
 sumOfSquares :: Int -> Int -> Int
-sumOfSquares x y = x^2 + y^2
+sumOfSquares x y = x * x + y * y
 
-{- | Implement a function that returns the last digit of a given number.
+-- | Implement a function that returns the last digit of a given number.
+--
+-- >>> lastDigit 42
+-- 2
+-- >>> lastDigit (-17)
+-- 7
+--
+-- 🕯 HINT: use the @mod@ functionn
 
->>> lastDigit 42
-2
->>> lastDigit (-17)
-7
-
-🕯 HINT: use the @mod@ function
-
--}
 -- DON'T FORGET TO SPECIFY THE TYPE IN HERE
 lastDigit :: Int -> Int
-lastDigit n 
-    | n < 0 = n*(-1) `mod` 10
-    | otherwise = n `mod` 10
+lastDigit n = abs n `mod` 10
 
-{- | Write a function that takes three numbers and returns the
-difference between the biggest number and the smallest one.
-
->>> minmax 7 1 4
-6
-
-Explanation: @minmax 7 1 4@ returns 6 because 7 is the biggest number
-and 1 is the smallest, and 7 - 1 = 6.
-
-Try to use local variables (either let-in or where) to implement this
-function.
--}
+-- | Write a function that takes three numbers and returns the
+-- difference between the biggest number and the smallest one.
+--
+-- >>> minmax 7 1 4
+-- 6
+--
+-- Explanation: @minmax 7 1 4@ returns 6 because 7 is the biggest number
+-- and 1 is the smallest, and 7 - 1 = 6.
+--
+-- Try to use local variables (either let-in or where) to implement this
+-- function.
 minmax :: Int -> Int -> Int -> Int
 minmax x y z =
-    let minNumber = min x (min y z)
-        maxNumber = max x (max y z)
-    in maxNumber - minNumber
+  let minNumber = min x (min y z)
+      maxNumber = max x (max y z)
+   in maxNumber - minNumber
 
-{- | Implement a function that takes a string, start and end positions
-and returns a substring of a given string from the start position to
-the end (including).
-
->>> subString 3 7 "Hello, world!"
-"lo, w"
-
->>> subString 10 5 "Some very long String"
-""
-
-This function can accept negative start and end position. Negative
-start position can be considered as zero (e.g. substring from the
-first character) and negative end position should result in an empty
-string.
--}
+-- | Implement a function that takes a string, start and end positions
+-- and returns a substring of a given string from the start position to
+-- the end (including).
+--
+-- >>> subString 3 7 "Hello, world!"
+-- "lo, w"
+--
+-- >>> subString 10 5 "Some very long String"
+-- ""
+--
+-- This function can accept negative start and end position. Negative
+-- start position can be considered as zero (e.g. substring from the
+-- first character) and negative end position should result in an empty
+-- string.
 subString :: Int -> Int -> [Char] -> [Char]
 subString start end str
-    | end < 0 = []
-    | otherwise = take (end-(max 0 start)+1) (drop (max 0 start) str)
+  | end < 0 = []
+  | otherwise = take (end - (max 0 start) + 1) (drop (max 0 start) str)
 
-{- | Write a function that takes a String — space separated numbers,
-and finds a sum of the numbers inside this string.
-
->>> strSum "100    -42  15"
-73
-
-The string contains only spaces and/or numbers.
--}
+-- | Write a function that takes a String — space separated numbers,
+-- and finds a sum of the numbers inside this string.
+--
+-- >>> strSum "100    -42  15"
+-- 73
+--
+-- The string contains only spaces and/or numbers.
 strSum :: [Char] -> Int
-strSum str = go 0 (words str)
-    where
-        go :: Int -> [[Char]] -> Int
-        go result w =
-            if null w
-            then result
-            else go (result + (read (head w))) (tail w)
+strSum str = sum $ map read $ words str
 
-{- | Write a function that takes a number and a list of numbers and
-returns a string, saying how many elements of the list are strictly
-greater than the given number and strictly lower.
-
->>> lowerAndGreater 3 [1 .. 9]
-"3 is greater than 2 elements and lower than 6 elements"
-
-Explanation: the list [1 .. 9] contains 9 elements: [1, 2, 3, 4, 5, 6, 7, 8, 9]
-The given number 3 is greater than 2 elements (1 and 2)
-and lower than 6 elements (4, 5, 6, 7, 8 and 9).
-
-🕯 HINT: Use recursion to implement this function.
--}
+-- | Write a function that takes a number and a list of numbers and
+-- returns a string, saying how many elements of the list are strictly
+-- greater than the given number and strictly lower.
+--
+-- >>> lowerAndGreater 3 [1 .. 9]
+-- "3 is greater than 2 elements and lower than 6 elements"
+--
+-- Explanation: the list [1 .. 9] contains 9 elements: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+-- The given number 3 is greater than 2 elements (1 and 2)
+-- and lower than 6 elements (4, 5, 6, 7, 8 and 9).
+--
+-- 🕯 HINT: Use recursion to implement this function.
 lowerAndGreater :: Int -> [Int] -> [Char]
 lowerAndGreater n list =
-    let numGreater = count 0 list (\ x-> x<n)
-        numLesser = count 0 list (\ x-> x>n)
-    in unwords [show n, "is greater than", show numGreater, "elements and lower than", show numLesser, "elements"]
-    where
-        count :: Int -> [Int] -> (Int->Bool) -> Int
-        count result l cmp =
-            if null l
-            then result
-            else if cmp (head l)
-                then count (result+1) (tail l) cmp
-                else count result (tail l) cmp
-
+  let num = go (0, 0) list
+   in show n ++ " is greater than " ++ show (fst num) ++ " elements and lower than " ++ show (snd num) ++ " elements"
+  where
+    go :: (Int, Int) -> [Int] -> (Int, Int)
+    go res [] = res
+    go res (x : xs)
+      | x < n = go (fst res + 1, snd res) xs
+      | x > n = go (fst res, snd res + 1) xs
+      | otherwise = go res xs
