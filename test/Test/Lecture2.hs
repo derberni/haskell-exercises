@@ -25,12 +25,13 @@ lecture2Spec = describe "Lecture 2" $ do
 lecture2Normal :: Spec
 lecture2Normal = describe "Normal" $ do
     describe "lazyProduct" $ do
-        it "1 on []"        $ lazyProduct []                    `shouldBe` 1
-        it "x on [x]"       $ lazyProduct [10]                  `shouldBe` 10
-        it "Normal product" $ lazyProduct [3, 1, 2, 7, 5]       `shouldBe` 210
-        it "Factorial"      $ lazyProduct [1 .. 10]             `shouldBe` 3628800
-        it "Zero when 0"    $ lazyProduct [10, 3, 0, 5]         `shouldBe` 0
-        it "Is lazy"        $ lazyProduct [3, 0, error "Oops!"] `shouldBe` 0
+        it "1 on []"           $ lazyProduct []                                         `shouldBe` 1
+        it "x on [x]"          $ lazyProduct [10]                                       `shouldBe` 10
+        it "Normal product"    $ lazyProduct [3, 1, 2, 7, 5]                            `shouldBe` 210
+        it "Factorial"         $ lazyProduct [1 .. 10]                                  `shouldBe` 3628800
+        it "Zero when 0"       $ lazyProduct [10, 3, 0, 5]                              `shouldBe` 0
+        it "Is lazy"           $ lazyProduct [3, 0, error "Oops!"]                      `shouldBe` 0
+        it "0 not penultimate" $ lazyProduct [3, 0, error "Oops!", error "Oops again!"] `shouldBe` 0
 
         it "lazyProduct ≡ product" $ hedgehog $ do
             xs <- forAll $ Gen.list (Range.linear 0 10) (Gen.int Range.linearBounded)
