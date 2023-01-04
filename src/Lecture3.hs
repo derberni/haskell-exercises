@@ -31,6 +31,7 @@ module Lecture3
 where
 
 -- VVV If you need to import libraries, do it after this line ... VVV
+
 import Data.Monoid (Any (..))
 
 -- ^ ^^ and before this line. Otherwise the test suite might fail  ^^^
@@ -90,7 +91,9 @@ next d
 -- >>> daysTo Friday Wednesday
 -- 5
 daysTo :: Weekday -> Weekday -> Int
-daysTo from to = mod (fromEnum to - fromEnum from + fromEnum (maxBound :: Weekday) + 1) (fromEnum (maxBound :: Weekday) + 1)
+daysTo from to = mod (fromEnum to - fromEnum from + stride) stride
+  where
+    stride = fromEnum (maxBound :: Weekday) + 1
 
 {-
 
@@ -126,10 +129,10 @@ data Reward = Reward
 
 instance Semigroup Reward where
   (<>) :: Reward -> Reward -> Reward
-  (<>) a b = Reward (rewardGold a <> rewardGold b) (getAny (Any (rewardSpecial a) <> Any (rewardSpecial b)))
+  (<>) (Reward goldA specialA) (Reward goldB specialB) = Reward (goldA <> goldB) (specialA || specialB)
 
 instance Monoid Reward where
-  mempty = Reward (mempty :: Gold) (getAny (mempty :: Any))
+  mempty = Reward (mempty :: Gold) False
 
 -- | 'List1' is a list that contains at least one element.
 data List1 a = List1 a [a]
@@ -137,7 +140,7 @@ data List1 a = List1 a [a]
 
 -- | This should be list append.
 instance Semigroup (List1 a) where
-  (<>) (List1 lval l) (List1 kval k) = List1 lval (l ++ [kval] ++ k)
+  (<>) (List1 lval l) (List1 kval k) = List1 lval (l ++ kval : k)
 
 -- | Does 'List1' have the 'Monoid' instance? If no then why?
 --
@@ -219,8 +222,23 @@ types that can have such an instance.
 -- instance Foldable Weekday where
 -- instance Foldable Gold where
 -- instance Foldable Reward where
--- instance Foldable List1 where
--- instance Foldable Treasure where
+instance Foldable List1 where
+  foldr :: (a -> b -> b) -> b -> List1 a -> b
+  foldr step initial (List1 val []) = step val initial
+  foldr step initial (List1 val (x : xs)) = foldr step (step val initial) (List1 x xs)
+
+  foldMap :: Monoid m => (a -> m) -> List1 a -> m
+  foldMap mcon (List1 val []) = mcon val
+  foldMap mcon (List1 val (x : xs)) = foldMap mcon (List1 x xs) <> mcon val
+
+instance Foldable Treasure where
+  foldr :: (a -> b -> b) -> b -> Treasure a -> b
+  foldr _ initial NoTreasure = initial
+  foldr step initial (SomeTreasure t) = step t initial
+
+  foldMap :: Monoid m => (a -> m) -> Treasure a -> m
+  foldMap _ NoTreasure = mempty
+  foldMap mcon (SomeTreasure t) = mcon t
 
 {-
 
@@ -235,8 +253,14 @@ types that can have such an instance.
 -- instance Functor Weekday where
 -- instance Functor Gold where
 -- instance Functor Reward where
--- instance Functor List1 where
--- instance Functor Treasure where
+instance Functor List1 where
+  fmap :: (a -> b) -> List1 a -> List1 b
+  fmap f (List1 val l) = List1 (f val) (map f l)
+
+instance Functor Treasure where
+  fmap :: (a -> b) -> Treasure a -> Treasure b
+  fmap _ NoTreasure = NoTreasure
+  fmap f (SomeTreasure x) = SomeTreasure (f x)
 
 -- | Functions are first-class values in Haskell. This means that they
 -- can be even stored inside other data types as well!
@@ -253,4 +277,5 @@ types that can have such an instance.
 -- Just [8,9,10]
 -- >>> apply 5 [(+ 3), (* 4), div 17]
 -- [8,20,3]
-apply = error "TODO"
+apply :: Functor f => a -> f (a -> a) -> f a
+apply x = fmap ($ x)
