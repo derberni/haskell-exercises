@@ -52,7 +52,7 @@ import Data.Either (fromRight, isLeft)
 -- 84
 lazyProduct :: [Int] -> Int
 lazyProduct [] = 1
-lazyProduct [0, _] = 0
+lazyProduct (0 : _) = 0
 lazyProduct (x : xs) = x * lazyProduct xs
 
 -- | Implement a function that duplicates every element in the list.
@@ -79,7 +79,7 @@ removeAt _ [] = (Nothing, [])
 removeAt 0 (x : xs) = (Just x, xs)
 removeAt pos (x : xs)
   | pos < 0 = (Nothing, x : xs)
-  | otherwise = second ([x] ++) (removeAt (pos - 1) xs)
+  | otherwise = second (x :) (removeAt (pos - 1) xs)
 
 -- | Write a function that takes a list of lists and returns only
 -- lists of even lengths.
@@ -231,9 +231,7 @@ previous ones. Difficulty is a relative concept.
 isIncreasing :: [Int] -> Bool
 isIncreasing [] = True
 isIncreasing [_] = True
-isIncreasing (x : y : xs)
-  | y > x = isIncreasing (y : xs)
-  | otherwise = False
+isIncreasing (x : y : xs) = x < y && isIncreasing (y : xs)
 
 -- | Implement a function that takes two lists, sorted in the
 -- increasing order, and merges them into new list, also sorted in the
@@ -248,6 +246,7 @@ merge :: [Int] -> [Int] -> [Int]
 merge [] l = l
 merge l [] = l
 merge (x : xs) (y : ys)
+  | x == y = x : y : merge xs ys
   | x < y = x : merge xs (y : ys)
   | otherwise = y : merge (x : xs) ys
 
@@ -264,12 +263,18 @@ merge (x : xs) (y : ys)
 --
 -- >>> mergeSort [3, 1, 2]
 -- [1,2,3]
+splitEvenOdd :: [a] -> ([a], [a])
+splitEvenOdd [] = ([], [])
+splitEvenOdd (x : xs) = (x : o, e)
+  where
+    (e, o) = splitEvenOdd xs
+
 mergeSort :: [Int] -> [Int]
 mergeSort [] = []
 mergeSort [x] = [x]
 mergeSort l = merge (mergeSort (fst split)) (mergeSort (snd split))
   where
-    split = splitAt (length l `div` 2) l
+    split = splitEvenOdd l
 
 -- | Haskell is famous for being a superb language for implementing
 -- compilers and interpreters to other programming languages. In the next
@@ -321,13 +326,10 @@ eval _ (Lit i) = Right i
 eval v (Var s) = case lookup s v of
   Nothing -> Left $ VariableNotFound s
   Just i -> Right i
-eval v (Add l r)
-  | isLeft lEval = lEval
-  | isLeft rEval = rEval
-  | otherwise = Right $ fromRight 0 lEval + fromRight 0 rEval
-  where
-    lEval = eval v l
-    rEval = eval v r
+eval v (Add l r) = case (eval v l, eval v r) of
+  (Left err, _) -> Left err
+  (_, Left err) -> Left err
+  (Right i, Right j) -> Right (i + j)
 
 -- | Compilers also perform optimizations! One of the most common
 -- optimizations is "Constant Folding". It performs arithmetic operations
