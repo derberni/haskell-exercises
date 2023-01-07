@@ -132,7 +132,7 @@ instance Semigroup Reward where
   (<>) (Reward goldA specialA) (Reward goldB specialB) = Reward (goldA <> goldB) (specialA || specialB)
 
 instance Monoid Reward where
-  mempty = Reward (mempty :: Gold) False
+  mempty = Reward mempty False
 
 -- | 'List1' is a list that contains at least one element.
 data List1 a = List1 a [a]
@@ -225,11 +225,11 @@ types that can have such an instance.
 instance Foldable List1 where
   foldr :: (a -> b -> b) -> b -> List1 a -> b
   foldr step initial (List1 val []) = step val initial
-  foldr step initial (List1 val (x : xs)) = foldr step (step val initial) (List1 x xs)
+  foldr step initial (List1 val xs) = foldr step (step val initial) xs
 
   foldMap :: Monoid m => (a -> m) -> List1 a -> m
   foldMap mcon (List1 val []) = mcon val
-  foldMap mcon (List1 val (x : xs)) = foldMap mcon (List1 x xs) <> mcon val
+  foldMap mcon (List1 val xs) = foldMap mcon xs <> mcon val
 
 instance Foldable Treasure where
   foldr :: (a -> b -> b) -> b -> Treasure a -> b
