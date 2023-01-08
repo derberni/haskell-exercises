@@ -1,3 +1,6 @@
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE StrictData #-}
+
 -- |
 -- Module                  : Lecture4
 -- Copyright               : (c) 2021-2022 Haskell Beginners 2022 Course
@@ -99,6 +102,7 @@ module Lecture4
   )
 where
 
+import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (mapMaybe)
 import Data.Semigroup (Max (..), Min (..), Semigroup (..), Sum (..))
@@ -185,6 +189,10 @@ instance Semigroup MaxLen where
     LT -> MaxLen k
     _ -> MaxLen l
 
+instance Monoid MaxLen where
+  mempty :: MaxLen
+  mempty = MaxLen []
+
 {-
 It's convenient to represent our stats as a data type that has
 'Semigroup' instance so we can easily combine stats for multiple
@@ -210,10 +218,20 @@ The 'Stats' data type has multiple fields. All these fields have
 instance for the 'Stats' type itself.
 -}
 
+accMaybe :: Semigroup a => Maybe a -> Maybe a -> Maybe a
+accMaybe m Nothing = m
+accMaybe Nothing m = m
+accMaybe (Just !m) (Just !n) = Just (m <> n)
+
 instance Semigroup Stats where
   (<>) :: Stats -> Stats -> Stats
   (<>) (Stats tp1 ts1 amax1 amin1 smax1 smin1 bmax1 bmin1 l1) (Stats tp2 ts2 amax2 amin2 smax2 smin2 bmax2 bmin2 l2) =
-    Stats (tp1 <> tp2) (ts1 <> ts2) (amax1 <> amax2) (amin1 <> amin2) (smax1 <> smax2) (smin1 <> smin2) (bmax1 <> bmax2) (bmin1 <> bmin2) (l1 <> l2)
+    Stats (tp1 <> tp2) (ts1 <> ts2) (amax1 <> amax2) (amin1 <> amin2) (smax1 `accMaybe` smax2) (smin1 `accMaybe` smin2) (bmax1 `accMaybe` bmax2) (bmin1 `accMaybe` bmin2) (l1 <> l2)
+
+-- implement Monoid instance for Stats to have the mempty for foldl' in combineRows
+instance Monoid Stats where
+  mempty :: Stats
+  mempty = Stats mempty mempty mempty mempty mempty mempty mempty mempty mempty
 
 {-
 The reason for having the 'Stats' data type is to be able to convert
@@ -254,9 +272,10 @@ exercises (remember that type?) but with a different constructor.
 Have a look at the 'sconcat' function from the 'Semigroup' typeclass to
 implement the next task.
 -}
-
+-- foldl' :: (Stats -> Row -> Stats) -> Stats -> NonEmpty Row -> Stats
 combineRows :: NonEmpty Row -> Stats
-combineRows = sconcat . fmap rowToStats
+--combineRows = sconcat . fmap rowToStats
+combineRows = foldl' (<>) mempty . fmap rowToStats
 
 {-
 After we've calculated stats for all rows, we can then pretty-print
