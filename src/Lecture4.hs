@@ -102,6 +102,7 @@ module Lecture4
   )
 where
 
+import Control.Monad (guard)
 import Data.Foldable (foldl')
 import Data.List.NonEmpty (NonEmpty (..))
 import Data.Maybe (mapMaybe)
@@ -150,12 +151,13 @@ splitBy = go []
       | otherwise = go (current ++ [x]) sep xs
 
 parseRow :: String -> Maybe Row
-parseRow s = case parts of
-  ("" : _) -> Nothing
-  [a, b, c] -> (readMaybe b :: Maybe TradeType) >>= (\tt -> (readMaybe c :: Maybe Int) >>= (\cost -> if cost < 0 then Nothing else Just (Row a tt cost)))
-  _ -> Nothing
-  where
-    parts = splitBy ',' s
+parseRow s = do
+  [a, b, c] <- Just $ splitBy ',' s
+  guard $ a /= ""
+  tt <- readMaybe b
+  cost <- readMaybe c
+  guard $ cost >= 0
+  pure $ Row a tt cost
 
 {-
 We have almost all we need to calculate final stats in a simple and
@@ -219,9 +221,9 @@ instance for the 'Stats' type itself.
 -}
 
 accMaybe :: Semigroup a => Maybe a -> Maybe a -> Maybe a
-accMaybe m Nothing = m
-accMaybe Nothing m = m
-accMaybe (Just !m) (Just !n) = Just (m <> n)
+accMaybe a b = case a <> b of
+  Nothing -> Nothing
+  Just !x -> Just x
 
 instance Semigroup Stats where
   (<>) :: Stats -> Stats -> Stats
